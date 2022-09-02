@@ -29,6 +29,7 @@ public class Yuzu {
 	
 	volatile LinkedBlockingQueue<IRequest<File>> requests;
 	Server server;
+	boolean paused = true;
 	
 	public Yuzu(int clientPort, int serverPort) throws SocketException {
 		requests = new LinkedBlockingQueue<>();
@@ -61,7 +62,15 @@ public class Yuzu {
 		while(true) {
 			try {
 				IRequest<File> request = requests.take();
+				if(paused) {
+					togglePaused();
+				}
+				
 				handle(request);
+				
+				if(requests.isEmpty()) {
+					togglePaused();
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -69,14 +78,12 @@ public class Yuzu {
 	}
 	
 	private void handle(IRequest<File> request) throws InterruptedException {
-		togglePaused();
 		if(request instanceof ScriptRequest)
 			handle((ScriptRequest) request);
 		else if(request instanceof ScreenshotRequest)
 			handle((ScreenshotRequest) request);
 		else
 			throw new UnsupportedOperationException("Request not implemented: "+request.getClass().getCanonicalName());
-		togglePaused();
 	}
 	
 	public void togglePaused() {
