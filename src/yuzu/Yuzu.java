@@ -1,12 +1,15 @@
 package yuzu;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 import bot.DestUtil;
 import bot.YuzuBot;
@@ -78,7 +81,8 @@ public class Yuzu {
 	
 	public void togglePaused() {
 		try {
-			Runtime.getRuntime().exec("SendKeystroke.exe \"yuzu | tas-perfect-bd0d57355 | SUPER MARIO ODYSSEY (64-bit) | 1.0.0 | NVIDIA\" \"Qt5152QWindowIcon\"");
+			Runtime.getRuntime().exec("SendKeystroke.exe \""+getYuzuWindowName()+"\" \"Qt5152QWindowIcon\"");
+			paused = !paused;
 			Thread.sleep(10000);
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
@@ -119,8 +123,6 @@ public class Yuzu {
 			request.setStatusReport(2);
 			Path tempVideoFile = Files.createTempFile("tas_", ".mp4");
 			File videoFile = tempVideoFile.toFile();
-			//TODO get video size and window name dynamically
-			//window name: last \"-enclosed part of "tasklist /v /fi "imagename eq yuzu.exe" /fo csv /nh"
 			String cmd = "ffmpeg -y ";
 			cmd += getFFMPEGInputDetails();
 			cmd += "-vcodec libx264 -crf 38 -b:a 72k -vf fps=30 -pix_fmt yuv420p -an -t "+time;
@@ -163,15 +165,25 @@ public class Yuzu {
 		}
 	}
 	
-	private String getFFMPEGInputDetails() {
-		//TODO get video size and window name dynamically
-		//window name: last \"-enclosed part of "tasklist /v /fi "imagename eq yuzu.exe" /fo csv /nh"
-		String title = "yuzu | tas-perfect-bd0d57355 | SUPER MARIO ODYSSEY (64-bit) | 1.0.0 | NVIDIA";
-		//String title = "yuzu | ffmpeg-new-410cf1ded | SUPER MARIO ODYSSEY (64-bit) | 1.0.0 | NVIDIA";
+	private String getFFMPEGInputDetails() throws IOException, InterruptedException {
+		String title = getYuzuWindowName();
 		
 		return "-video_size 1280x960 -framerate 30 -f gdigrab -i title=\""+title+"\" -draw_mouse 0 ";
 
 		//return "-f x11grab -i :0.0+6,689 ";
+	}
+
+	public static String getYuzuWindowName() throws IOException, InterruptedException {
+		Process p = Runtime.getRuntime().exec("tasklist /v /fi \"imagename eq yuzu.exe\" /fo csv /nh");
+		p.waitFor();
+		
+		String result = new BufferedReader(new InputStreamReader(p.getInputStream())).lines().parallel().collect(Collectors.joining("\n"));
+		
+		String firstLine = result.split("\n")[0];
+		String[] parts = firstLine.split(",");
+		String title = parts[parts.length-1];
+		
+		return title.substring(1, title.length()-1);
 	}
 
 }
