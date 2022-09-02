@@ -106,11 +106,13 @@ public class Yuzu {
 				throw new ParseException("The warp destination has not been set properly!");
 			}
 			
-			String[] stageNames = DestUtil.getEntries(setting.getStage(), setting.getScenario(), "ChangeStageName");
-			String kingdomName = Arrays.stream(stageNames).filter(s -> s.contains("Home")).findFirst().orElse(null);
-			if(kingdomName != null) {
-				server.sendPacket(new PlayerGo(kingdomName, -1, setting.getEntry(), false));
-				Thread.sleep(10000);
+			if(!setting.getStage().contains("WorldHomeStage")) {
+				String[] stageNames = DestUtil.getEntries(setting.getStage(), setting.getScenario(), "ChangeStageName");
+				String kingdomName = Arrays.stream(stageNames).filter(s -> s.contains("Home")).findFirst().orElse(null);
+				if(kingdomName != null) {
+					server.sendPacket(new PlayerGo(kingdomName, -1, setting.getEntry(), false));
+					Thread.sleep(10000);
+				}
 			}
 			
 			Script script = new Script(file);
