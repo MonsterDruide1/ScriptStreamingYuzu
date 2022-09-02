@@ -146,7 +146,6 @@ public class ScriptRequest implements IRequest<File> {
 				"Waiting in Queue:  ",
 				"Preparing script:  ",
 				"Capturing video footage:  ",
-				"Compressing video file:  ",
 				"Uploading file:  "
 		};
 	}

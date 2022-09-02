@@ -98,8 +98,8 @@ public class Yuzu {
 	
 	private void handle(ScriptRequest request) throws InterruptedException {
 		try {
-			File file = request.scriptFile.get();
 			request.setStatusReport(1);
+			File file = request.scriptFile.get();
 			
 			UserSetting setting = YuzuBot.userSettings.get(request.user.getName());
 			if(setting == null || setting.getStage() == null || setting.getEntry() == null) {
@@ -149,10 +149,7 @@ public class Yuzu {
 
 			request.setStatusReport(3);
 			
-			File compressedVideoFile = videoFile;//compressVideoFile(videoFile);
-			request.setStatusReport(4);
-			
-			request.onComplete(compressedVideoFile);
+			request.onComplete(videoFile);
 		} catch(Exception e) {
 			request.sendStackTrace(e);
 		}
