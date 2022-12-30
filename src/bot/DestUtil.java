@@ -3,20 +3,20 @@ package bot;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import compression.BYMLDecompress;
 import compression.SARCDecompress;
 import config.UserSetting;
-import main.Util;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import out.PlayerGo;
+import util.NintendoUtil;
 
 public class DestUtil {
 	
@@ -110,15 +110,14 @@ public class DestUtil {
 		String mapName = stage+"Map";
 		File mapFile = new File(PATH_TO_SMO_ROMFS+"StageData\\"+mapName+".szs");
 		try {
-			SARCDecompress sarc = new SARCDecompress(Util.readFileToByte(mapFile));
-			SARCDecompress.Node[] matches = Stream.of(sarc.nodes).filter(node -> node.fileName.equals(mapName+".byml")).toArray(SARCDecompress.Node[]::new);
+			SARCDecompress sarc = new SARCDecompress(Files.readAllBytes(mapFile.toPath()));
+			byte[] match = sarc.files.get(mapName+".byml");
 
-			if(matches.length != 1) {
-				System.err.println(matches.length+" != 1 SARC nodes found with the name "+mapName+".byml in "+mapFile.toString());
+			if(match == null) {
+				System.err.println(mapName+".byml not found in "+mapFile.toString());
 				return null;
 			}
-			
-			return getEntries(new BYMLDecompress(matches[0].content), scenario, propertyName);
+			return getEntries(new BYMLDecompress(match), scenario, propertyName);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
